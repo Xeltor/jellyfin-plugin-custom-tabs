@@ -19,29 +19,39 @@
         },
 
         fetchConfigs() {
-            // Use ApiClient if available, otherwise fallback to window.fetch
+            // Debug: check for ApiClient
+            console.log('[CustomTabs] fetchConfigs: window.ApiClient =', !!window.ApiClient, 'ApiClient.fetch type =', window.ApiClient && typeof ApiClient.fetch, 'ApiClient.getUrl type =', window.ApiClient && typeof ApiClient.getUrl);
             if (window.ApiClient && typeof ApiClient.fetch === 'function' && typeof ApiClient.getUrl === 'function') {
+                const url = ApiClient.getUrl('CustomTabs/Config');
+                console.log('[CustomTabs] fetchConfigs using ApiClient, URL =', url);
                 return ApiClient.fetch({
-                    url: ApiClient.getUrl('CustomTabs/Config'),
+                    url,
                     type: 'GET',
                     dataType: 'json',
                     headers: { accept: 'application/json' }
                 });
             } else {
                 // Fallback: direct fetch to plugin endpoint
-                return fetch('/CustomTabs/Config', {
-                    headers: { 'Accept': 'application/json' }
-                })
+                const fallbackUrl = `${window.location.origin}/CustomTabs/Config`;
+                console.log('[CustomTabs] fetchConfigs using fetch(), URL =', fallbackUrl);
+                return fetch(fallbackUrl, { headers: { 'Accept': 'application/json' } })
                     .then(res => {
-                        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+                        if (!res.ok) {
+                            console.error('[CustomTabs] fetchConfigs fallback failed HTTP status:', res.status, res.statusText);
+                            throw new Error(`HTTP ${res.status} ${res.statusText}`);
+                        }
                         return res.json();
                     });
             }
         },
 
         tryInject() {
-            if (!this.configs || this.configs.length === 0) return;
+            // ─── only on homepage (hash-based routing) ───
+            const hash = window.location.hash || '';
+            const isHome = hash === '#/home.html' || hash === '' || hash === '#/';
+            if (!isHome) return;
 
+            if (!this.configs || this.configs.length === 0) return;
             const slider = document.querySelector('.emby-tabs-slider');
             if (!slider) return;
 
@@ -70,14 +80,6 @@
     // Bootstrap on load
     window.customTabsPlugin.init();
 
-    // Re-inject on SPA navigations
-    window.addEventListener('popstate', () => window.customTabsPlugin.tryInject());
-    ['pushState', 'replaceState'].forEach(fn => {
-        const orig = history[fn];
-        history[fn] = function () {
-            const ret = orig.apply(this, arguments);
-            window.customTabsPlugin.tryInject();
-            return ret;
-        };
-    });
+    // Re-inject on hash changes (SPA navigation)
+    window.addEventListener('hashchange', () => window.customTabsPlugin.tryInject());
 })();
