@@ -37,7 +37,6 @@
          */
         _process() {
             const hash = window.location.hash || '';
-            // Accept '#/home.html', '#/', or empty as home
             const isHome = hash.startsWith('#/home.html') || hash === '#/' || hash === '';
             const slider = document.querySelector('.emby-tabs-slider');
 
@@ -117,10 +116,52 @@
             .catch(err => console.error('Error initializing custom tabs:', err));
     }
 
-    // Wait for DOM readiness
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initCustomTabs);
-    } else {
+    /**
+     * Measure header height and reposition iframe to sit below header
+     */
+    function adjustFrame() {
+        const header = document.querySelector('.skinHeader');
+        const iframe = document.getElementById('requestIframe');
+        if (!header || !iframe) return;
+        const h = header.getBoundingClientRect().height;
+        Object.assign(iframe.style, {
+            position: 'absolute',
+            top:      h + 'px',
+            left:     '0',
+            right:    '0',
+            bottom:   '0',
+            width:    '100%',
+            border:   '0'
+        });
+    }
+
+    /**
+     * Poll via requestAnimationFrame until both header and iframe exist, then init resize handling
+     */
+    function initIframeAdjustment() {
+        function init() {
+            const header = document.querySelector('.skinHeader');
+            const iframe = document.getElementById('requestIframe');
+            if (!header || !iframe) {
+                return requestAnimationFrame(init);
+            }
+            // Initial adjust
+            adjustFrame();
+            // Re-adjust on window resize
+            window.addEventListener('resize', adjustFrame);
+        }
+        init();
+    }
+
+    // Wait for DOM readiness, then kick off both features
+    function onReady() {
         initCustomTabs();
+        initIframeAdjustment();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onReady);
+    } else {
+        onReady();
     }
 })();
