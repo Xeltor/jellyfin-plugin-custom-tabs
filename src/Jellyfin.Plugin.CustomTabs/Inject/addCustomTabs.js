@@ -16,7 +16,7 @@ if (typeof window.customTabsPlugin == 'undefined') {
         waitForUI: function() {
             // Check if we are on the home page by looking at the URL hash
             const hash = window.location.hash;
-            if (hash !== '' && hash !== '#/home' && !hash.includes('#/home.html')) {
+            if (hash !== '' && hash !== '#/home' && hash !== '#/home.html' && !hash.includes('#/home?') && !hash.includes('#/home.html?')) {
                 console.debug('CustomTabs: Not on main page, skipping UI check. Hash:', hash);
                 return;
             }
