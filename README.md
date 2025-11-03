@@ -39,6 +39,12 @@ The plugin has been inspired by, and makes use of the work done by, <a href="htt
 6. Save the settings.
 7. Force refresh your webpage (or app) and you should see your new sections instead of the original ones.
 
+### FAQ
+
+#### I've updated Jellyfin to latest version but I can't see the plugin available in the catalogue
+
+The likelihood is the plugin hasn't been updated for that version of Jellyfin and the plugins are strictly 1 version compatible. Please wait until an update has been pushed. If you can see the version number in the release assets then please make an issue, but if its not in the assets, please wait. I know Jellyfin has updated, I'll update when I can.
+
 ## Example
 
 <strong>Title: </strong>Requests
